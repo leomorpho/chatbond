@@ -10,6 +10,21 @@ The app contains 3 separate repos:
 
 All repos contain a README, but for quick startup, one can start the whole app by starting the BE and FE separately:
 
+### What I learned in this project:
+
+* Flutter web and mobile app development and deployment.
+* Django-DRF.
+* FE architecture paradigms: two main ones were dart streams and the BLOC pattern to separate UI from business logic.
+* More advanced containerization techniques for Dockerfiles.
+* Docker swarm, even though I ended up not using it because it was overkill.
+* CI/CD with github and Earthly.
+* Nginx and reverse proxy setup.
+* Some basic GCP and terraform principles, although I ended up not going that direction for deployment.
+* Use ML recommendation engines in production and using S3 to backup ML models and necessary data.
+* Use ML clustering algorithms to sort my `questions` dataset, as well as use LLMs to extract keywords and assign categories for each question.
+* Backup and restore my production Postgres DB with S3.
+* Poetry: better python virtual environment management.
+
 ## Demo
 The below demos 2 clients talking to each other through the app. It walks through the basic features of the app:
 
