@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  chatbond-ml:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./compose/jupyter/Dockerfile
+    image: chatbond_ml
+    container_name: chatbond_ml
+    volumes:
+      - ./:/code
+    ports:
+      - '8888:8888'

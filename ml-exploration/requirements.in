@@ -1,0 +1,20 @@
+# ML Tools
+sentence-transformers
+bertopic
+scikit-learn
+openai
+# marvin
+umap-learn
+annoy
+
+# Plotting
+plotly
+matplotlib
+
+# Recommendation
+lightfm
+
+# Dev support
+rapidfuzz
+nbformat
+mypy

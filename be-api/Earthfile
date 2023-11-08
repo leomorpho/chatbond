@@ -1,0 +1,58 @@
+VERSION 0.7
+
+ARG VERSION
+ARG BUILD_NUMBER
+
+FROM earthly/dind:alpine-3.18
+WORKDIR /code
+
+
+base-image:
+    FROM DOCKERFILE -f compose/production/chatbond/Dockerfile .
+    SAVE IMAGE --push leonardmorpho/chatbond-api:0.1.0
+
+base-image-dev:
+    FROM DOCKERFILE -f compose/local/chatbond/Dockerfile .
+    SAVE IMAGE chatbond
+
+ut-dev: # Unit tests
+    FROM +base-image-dev
+    ENV DJANGO_CONFIGURATION=Testing
+    ENV DJANGO_SETTINGS_MODULE=chatbond.config
+    ENV DJANGO_SECRET_KEY=Z38yZgHxnANqs9cdihJKvzwCB
+
+    RUN python /code/manage.py test --parallel
+
+ut-prod: # Unit tests
+    FROM +base-image
+    ENV DJANGO_CONFIGURATION=Testing
+    ENV DJANGO_SETTINGS_MODULE=chatbond.config
+    ENV DJANGO_SECRET_KEY=Z38yZgHxnANqs9cdihJKvzwCB
+
+    RUN pip install parameterized
+
+    RUN python /code/manage.py test --parallel
+
+integration-tests:
+    # TODO: not working, hangs trying to connect to postgres
+    # See https://docs.earthly.dev/docs/guides/integration
+    # TODO: create an actual script that calls endpoints so that we can do an integration test.
+
+    # earthly -P +integration-tests
+    BUILD +base-image
+
+    COPY docker-compose-dev.yml ./
+    COPY ./.envs /code/.envs
+    RUN apk update
+    RUN apk add postgresql-client
+    WITH DOCKER --compose docker-compose-dev.yml --load chatbond=+base-image --load chatbond_postgres=+postgres-image
+        RUN while ! pg_isready --host=postgres --port=5432 --dbname=chatbond --username=debug; do sleep 1; done ;\
+            docker-compose run chatbond bash -c "python /code/manage.py test --parallel"
+    END
+
+# TODO: run UTs for django app with sqlite. Need to use the `testing` setting.
+
+# All targets
+build:
+    BUILD +ut-prod
+    BUILD +base-image

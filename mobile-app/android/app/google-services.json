@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "506900649498",
+    "project_id": "similitude-fac29",
+    "storage_bucket": "similitude-fac29.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:506900649498:android:c6b5c9f95bb4964ffea3a3",
+        "android_client_info": {
+          "package_name": "com.example.verygoodcore.flutter_similitude"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "506900649498-0063tkeavaui7i3066g5kb3kvsh5ekas.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4o4Pa0XMWjv2oO0eQjXNyq642TkWPAtA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "506900649498-0063tkeavaui7i3066g5kb3kvsh5ekas.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "506900649498-7m2em9sv0fl2reuqdelolga2up7sk1lr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.similitude.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,245 @@
+# To get env vars: scp -r .envs root@64.227.103.196:/root/chatbond-api
+
+version: '3.8'
+
+networks:
+  chatbond-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres_data: {}
+  postgres_data_backups: {}
+  rabbitmq_data: {}
+  rabbitmq_log: {}
+  redis_data: {}
+  shared_data: {}
+
+services:
+  postgres:
+    image: ankane/pgvector:v0.5.0
+    container_name: postgres
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'chatbond']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_backups:/backups
+    networks:
+      - chatbond-network
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    container_name: rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_log:/var/log/rabbitmq
+    networks:
+      - chatbond-network
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  redis:
+    image: 'redis:7.2.1-alpine'
+    container_name: redis
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - redis_data:/data
+    networks:
+      - chatbond-network
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  centrifugo:
+    image: centrifugo/centrifugo:v5.0
+    container_name: centrifugo
+    ports:
+      - 8080:8080
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    depends_on:
+      - redis
+    networks:
+      - chatbond-network
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  chatbond_api:
+    image: leonardmorpho/chatbond-api:0.1.0
+    container_name: chatbond_api
+    restart: always
+    command: >
+      bash -c "python /code/wait_for_dependencies.py &&
+               /code/manage.py migrate &&
+               gunicorn chatbond.wsgi:application --bind 0.0.0.0:8000 --workers=4 --log-level=warning"
+    volumes:
+      - shared_data:/shared_data
+    networks:
+      - chatbond-network
+    ports:
+      - '8000:8000'
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+      - centrifugo
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      # resources:
+      #   limits:
+      #     cpus: '1.0'
+      #     memory: 1G
+
+  scheduler:
+    image: leonardmorpho/chatbond-api:0.1.0
+    container_name: scheduler
+    restart: always
+    command: >
+      bash -c "python /code/wait_for_dependencies.py &&
+               /code/manage.py runapscheduler"
+    volumes:
+      - shared_data:/shared_data
+    networks:
+      - chatbond-network
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+      - chatbond_api
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      # resources:
+      #   limits:
+      #     cpus: '1.0'
+      #     memory: 1G
+
+  task_worker:
+    image: leonardmorpho/chatbond-api:0.1.0
+    container_name: task_worker
+    restart: always
+    command: >
+      bash -c "python /code/wait_for_dependencies.py &&
+               /code/manage.py rundramatiq_custom"
+    volumes:
+      - shared_data:/shared_data
+    networks:
+      - chatbond-network
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+      - chatbond_api
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      restart_policy:
+        condition: on-failure
+      replicas: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s # Delay between updates for zero-downtime
+        failure_action: rollback # In case of failure
+      # resources:
+      #   limits:
+      #     cpus: '1.0'
+      #     memory: 1G

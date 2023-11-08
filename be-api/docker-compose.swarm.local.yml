@@ -1,0 +1,72 @@
+# To get env vars: scp -r .envs root@64.227.103.196:/root/chatbond-api
+# Use to override docker-compose-common.yml for local use
+
+version: '3.8'
+
+services:
+  postgres:
+    env_file:
+      - ./.envs/.postgres.env
+
+  rabbitmq:
+    environment:
+      - ./.envs/.rabbitmq.env
+
+  centrifugo:
+    volumes:
+      - ./.envs/.centrifugo.json:/centrifugo/config.json
+    command: centrifugo -c config.json
+
+  chatbond_api:
+    build:
+      context: .
+      dockerfile: ./compose/local/chatbond/Dockerfile
+    image: chatbond
+    command: >
+      bash -c "python /code/wait_for_dependencies.py &&
+           /code/manage.py migrate &&
+           /code/manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./:/code
+    container_name: chatbond_api
+    env_file:
+      - ./.envs/.django.env
+      - ./.envs/.postgres.env
+      - ./.envs/.rabbitmq.env
+      - ./.envs/.redis.env
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./compose/local/chatbond/Dockerfile
+    image: chatbond
+    container_name: scheduler
+    volumes:
+      - ./:/code
+    env_file:
+      - ./.envs/.django.env
+      - ./.envs/.postgres.env
+      - ./.envs/.rabbitmq.env
+      - ./.envs/.redis.env
+
+  task_worker:
+    build:
+      context: .
+      dockerfile: ./compose/local/chatbond/Dockerfile
+    image: chatbond
+    container_name: task_worker
+    volumes:
+      - ./:/code
+    env_file:
+      - ./.envs/.django.env
+      - ./.envs/.postgres.env
+      - ./.envs/.rabbitmq.env
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    networks:
+      - chatbond-network
+    ports:
+      - 1025:1025
+      - 8025:8025

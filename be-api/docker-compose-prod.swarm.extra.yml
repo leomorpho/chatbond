@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    env_file:
+      - ./.envs/.postgres-production.env
+
+  rabbitmq:
+    environment:
+      - ./.envs/.rabbitmq-production.env
+
+  redis:
+    environment:
+      - ./.envs/.redis-production.env
+
+  centrifugo:
+    volumes:
+      - ./.envs/.centrifugo-production.json:/centrifugo/prod-config.json
+    command: centrifugo -c prod-config.json
+
+  chatbond_api:
+    env_file:
+      - ./.envs/.django-production.env
+      - ./.envs/.postgres-production.env
+      - ./.envs/.rabbitmq-production.env
+      - ./.envs/.redis-production.env
+
+  scheduler:
+    env_file:
+      - ./.envs/.django-production.env
+      - ./.envs/.postgres-production.env
+      - ./.envs/.rabbitmq-production.env
+      - ./.envs/.redis-production.env
+
+  task_worker:
+    env_file:
+      - ./.envs/.django-production.env
+      - ./.envs/.postgres-production.env
+      - ./.envs/.rabbitmq-production.env
+      - ./.envs/.redis-production.env
+
+  pgbackups3:
+    image: eeshugerman/postgres-backup-s3:15
+    container_name: pgbackups3
+    links:
+      - postgres
+    env_file:
+      - ./.envs/.postgres-production.env
+      - ./.envs/.django-production.env
+    environment:
+      SCHEDULE: '@daily'
+      BACKUP_KEEP_DAYS: 7
+      S3_BUCKET: chatbond-db-backups
+      S3_PREFIX: backup
+      POSTGRES_EXTRA_OPTS: '--schema=public --blobs'
+    # TODO: add healthcheck
+    networks:
+      - chatbond-network
