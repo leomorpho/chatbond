@@ -1,5 +1,6 @@
-# chatbond
-A proof-of-concept for a mobile app to improve intimate relationships through daily questions
+# Chatbond
+A proof-of-concept for a mobile app to improve intimate relationships through daily questions.
+This app was created as part of a learning experience. I had very limited frontend experience and wanted to learn Flutter. By deploying this app to production for close friends and family, I also learned CI/CD and devops principles, as I initially deployed it with `docker swarm` but eventually settled `docker-compose` as a sufficient solution (I didn't need any crazy dynamic scaling).
  
 The app contains 3 separate repos:
 
@@ -9,15 +10,16 @@ The app contains 3 separate repos:
 
 All repos contain a README, but for quick startup, one can start the whole app by starting the BE and FE separately:
 
-# Demo
+## Demo
 The below demos 2 clients talking to each other through the app. It walks through the basic features of the app:
 
 * User flow to answer a question and see answers.
 * User flow to chat live with contact.
 * Live update of data (notifications, answers).
 
+https://github.com/leomorpho/chatbond/assets/7016204/f94e0bac-2e8b-412d-8bc9-60fc3de47344
 
-# Quickstart
+## Quickstart
 
 ### Backend:
 
