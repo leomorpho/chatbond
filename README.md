@@ -26,6 +26,9 @@ All repos contain a README, but for quick startup, one can start the whole app b
 * Use ML clustering algorithms to sort my `questions` dataset, as well as use LLMs to extract keywords and assign categories for each question.
 * Backup and restore my production Postgres DB with S3.
 * Poetry: better python virtual environment management.
+* Dramatiq task manager (alternative to Celery that is less of a pain in the neck).
+* Mailhog, RabbitMQ, Postgres.
+* Centrifugo (web socket server which allows to separate realtime layer from application code, also very scalable).
 
 ## Demo
 The demo at the top demos 2 clients talking to each other through the app. It walks through the basic features of the app:
