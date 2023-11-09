@@ -9,7 +9,6 @@ The app contains 3 separate repos:
 * **be-api**: the Django-REST API.
 * **mobile-app**: the flutter app, which runs both on the web and mobile (android/iOS).
 * **ml-exploration**: used to explore ML approaches for recommendation and other issues worked on as part of this project.
-
 All repos contain a README, but for quick startup, one can start the whole app by starting the BE and FE separately:
 
 ### What I learned in this project:
