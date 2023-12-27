@@ -1,4 +1,4 @@
-# Chatbond
+# Social
 A proof-of-concept for a mobile app to improve intimate relationships through daily questions.
 This app was created as part of a learning experience. I had very limited frontend experience and wanted to learn Flutter. By deploying this app to production for close friends and family, I also learned CI/CD and devops principles, as I initially deployed it with `docker swarm` but eventually settled `docker-compose` as a sufficient solution (I didn't need any crazy dynamic scaling).
 
